@@ -14,7 +14,7 @@
 
 void	fork_test(int pid, int fdp[2])
 {
-	char	*args[3];
+	char	*args[4];
 	char	*env[2] = {"./test_files/infile", NULL};
 
 	if (pid == 0)	// 1st child
@@ -25,10 +25,12 @@ void	fork_test(int pid, int fdp[2])
 		close(fdp[1]);
 
 		//args[0] = "/bin/grep";
-		args[0] = "./test_files/infile";
+		args[0] = "grep";
 		args[1] = "a1";
-		args[2] = NULL;
-		execve("/bin/grep", args, env);
+		args[2] = "./test_files/infile";
+		args[3] = NULL;
+		execve("/usr/bin/grep", args, env);
+		perror("Salió algo mal");
 		exit(1);
 	}
 	return ;
@@ -40,34 +42,30 @@ void	fork_test(int pid, int fdp[2])
  */
 int	main(void)
 {
-	// int		pid;
-	// int		fdp[2];
-	// char	str[4096];
-	// // char	str2[4096];
+	int		pid;
+	int		fdp[2];
+	char	str[4096];
+	// char	str2[4096];
 
-	// pipe(fdp);
-	// pid = fork();
-	// fork_test(pid, fdp);
+	pipe(fdp);
+	pid = fork();
+	fork_test(pid, fdp);
 
-	// if (pid > 0)	// Parent
-	// {
-	// 	close(fdp[1]);
-	// 	read(fdp[0], str, 4096);
-	// 	printf("Parece que resultó\n");
-	// 	printf("Salida del comando 1: %s\n", str);
-	// 	wait(NULL);
-	// 	// pid = fork();
-	// 	// fork_test(pid, fdp);
-	// 	// printf("Segunda parte\n");
-	// 	// close(fdp[1]);
-	// 	// read(fdp[0], str2, 4096);
-	// 	// printf("Parece que resultó\n");
-	// 	// printf("Salida del comando 2: %s\n", str2);
+	if (pid > 0)	// Parent
+	{
+		close(fdp[1]);
+		read(fdp[0], str, 4096);
+		printf("Parece que resultó\n");
+		printf("Salida del comando 1: %s\n", str);
+		wait(NULL);
+		// pid = fork();
+		// fork_test(pid, fdp);
+		// printf("Segunda parte\n");
+		// close(fdp[1]);
+		// read(fdp[0], str2, 4096);
+		// printf("Parece que resultó\n");
+		// printf("Salida del comando 2: %s\n", str2);
 		
-	// }
-	char	*args[]  = {"wc", "-l", "./test_files/infile", NULL};
-	int i = execve("usr/bin/wc", args, NULL);
-	printf ("Algo fue mal, %d", i);
-	// exit(1);
+	}
 	return (0);
 }
