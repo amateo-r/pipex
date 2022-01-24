@@ -13,6 +13,8 @@
 #ifndef LIBPIPEX_H
 # define LIBPIPEX_H
 
+# include "./libft/libft.h"
+
 # include <unistd.h>
 # include <fcntl.h>
 # include <sys/types.h>

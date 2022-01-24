@@ -15,21 +15,28 @@
 #	https://stackoverflow.com/questions/13801175/classic-c-using-pipes-in-execvp-function-stdin-and-stdout-redirection
 
 #	SOURCES
-SRC		=	./src/main.c
-OBJ		=	$(SRC:.c=.o)
+SRC			=	./src/main.c
+OBJ			=	$(SRC:.c=.o)
+
+#	LIBS
+LIBFT		=	$(LIBFT_PATH)/libft.a
+LIBFT_PATH	=	./include/libft
 
 #	COMPILER
-NAME	=	pipex.a
-CC		=	gcc
-CFLAGS	=	-Wall -Wextra -Werror
-RM		=	rm -f
+NAME		=	pipex.a
+CC			=	gcc
+CFLAGS		=	-Wall -Wextra -Werror
+RM			=	rm -f
 
-all:		$(NAME)
+all:		makelib $(NAME)
 
 .%o.%c:		$(CC) $(CFLAGS) $<	-o $@
 
 $(NAME):	$(OBJ)
-			$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+			$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -o	$(NAME)
+
+makelib:
+			@make -C $(LIBFT_PATH)
 
 norme:
 			@echo "---- SRC ----"
@@ -38,9 +45,10 @@ norme:
 			@norminette ./include
 
 clean:
+			@make -C $(LIBFT_PATH) clean
 			$(RM) $(OBJ)
 
 fclean:		clean
-			$(RM) $(NAME)
+			$(RM) $(NAME) $(LIBFT)
 
 re:			fclean all
