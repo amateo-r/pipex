@@ -1,27 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   libpipex.h                                         :+:      :+:    :+:   */
+/*   exception_manager.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: amateo-r <amateo-r@student.42madrid>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/01/10 10:23:36 by amateo-r          #+#    #+#             */
-/*   Updated: 2022/01/10 10:23:39 by amateo-r         ###   ########.fr       */
+/*   Created: 2022/01/25 15:05:25 by amateo-r          #+#    #+#             */
+/*   Updated: 2022/01/25 15:05:28 by amateo-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef LIBPIPEX_H
-# define LIBPIPEX_H
+#include "../include/libpipex.h"
 
-# include "./libft/libft.h"
-
-# include <unistd.h>
-# include <fcntl.h>
-# include <sys/types.h>
-# include <sys/wait.h>
-# include <stdio.h>
-# include <stdlib.h>
-
-int	exc_manager(int argc, char **argv);
-
-#endif
+/**
+ * Handle error and control input. Return 0 if successful, -1 in other case.
+ */
+int	exc_manager(int argc, char **argv)
+{
+	//	Controla que la entrada de argumentos sean cuatro.
+	if (argc != 5)
+		return (-1);
+	else if (access(argv[1], F_OK) != 0)
+		return (-1);
+	return (0);
+}

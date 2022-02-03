@@ -15,7 +15,8 @@
 #	https://stackoverflow.com/questions/13801175/classic-c-using-pipes-in-execvp-function-stdin-and-stdout-redirection
 
 #	SOURCES
-SRC			=	./src/main.c
+SRC			=	./src/main.c \
+				./src/exception_manager.c
 OBJ			=	$(SRC:.c=.o)
 
 #	LIBS
