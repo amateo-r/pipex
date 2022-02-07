@@ -35,8 +35,9 @@ char**	build_command(char *file, char *command)
 
 	len = ft_count(command, ' ');
 	args = ft_splitn(command, ' ', 1);
-	ft_strlcpy(args[len], file, ft_strlen(file) + 1);
 	args[len + 1] = NULL;
+	args[len] = (char *) malloc(sizeof(*file) + (ft_strlen(file) + 1));
+	ft_strlcpy(args[len], file, ft_strlen(file) + 1);
 	return (args);
 }
 
@@ -78,18 +79,19 @@ char*	build_path(char	*argv)
  */
 void	make_proces(int pid, int fdp[2], char *path, char **args)
 {
-	// char	*args[4];
-	char	*env[2] = {"./test_files/infile", NULL};
-
+	int		i;
+	char	*env[2];
+	
 	if (pid == 0)
 	{
+		i = 0;
+		while (args[i])
+			i++;
+		ft_strlcpy(env[0], args[i - 1], ft_strlen(args[i - 1]) + 1);
+		env[1] = NULL;
 		dup2(fdp[1], STDOUT_FILENO);
 		close(fdp[0]);
 		close(fdp[1]);
-		int i = -1;
-		while (args[++i])
-			if (args[i])
-				printf("[%d]: %s\n", i, args[i]);
 		execve(path, args, env);
 		perror("Salió algo mal");
 		exit(1);
@@ -98,20 +100,22 @@ void	make_proces(int pid, int fdp[2], char *path, char **args)
 }
 /**
  * NOTAS
+ * fdo	File Descritor Outfile
  * fdp	Pipe for the parent, (F)ile (D)escriptor (P)arent.
  */
 int	main(int argc, char **argv)
 {
 	int		pid;
 	int		i;
+	int		fdo;
 	int		fdp[2];
-	char	str[4096];
-	char	str2[4096];
+	char	*str;
 	char	**args;
 	char	*path;
 
 	if (exc_manager(argc, argv) == 0)
 	{
+		str = (char *) malloc((sizeof(char) * 4096 + 1));
 		args = build_command(argv[1], argv[2]);
 		path = build_path(args[0]);
 		pipe(fdp);
@@ -121,19 +125,40 @@ int	main(int argc, char **argv)
 		if (pid > 0)
 		{
 			close(fdp[1]);
-			read(fdp[0], str, 4096);
+			i = read(fdp[0], str, 4096);
 			wait(NULL);
+
+			fdo = open(argv[4], O_CREAT, O_TRUNC, O_WRONLY);
+			printf("\n[%d]Lo que hay en str:\n%s\n", fdo, str);
+			write(fdo, str, i);
+			close(fdo);
+
+			free_my_chars(args);
+			free(path);
+			free(str);
+
+			args = build_command(argv[4], argv[3]);
+			path = build_path(args[0]);
 			pid = fork();
-			// free_my_chars(args);
-			// args = build_command(argv[1], argv[3]);
-			// path = build_path(args[0]);
+
 			make_proces(pid, fdp, path, args);
-			close(fdp[1]);
-			read(fdp[0], str2, 4096);
+			if (pid > 0)
+			{
+				close(fdp[1]);
+				str = NULL;
+				i = read(fdp[0], str, 4096);
+
+				fdo = open(argv[4], O_WRONLY);
+				printf("\n[%d]Lo que hay en str2:\n%s\n", fdo, str);
+				write(fdo, str, i);
+				close(fdo);
+
+				close(fdp[0]);
+			}
 		}
-		i = -1;
-		while(args[++i])
-		 	free(args[i]);
+		free_my_chars(args);
+		free(path);
+		// free(str);
 	}
 	system("leaks pipex.a");
 	exit(1);
