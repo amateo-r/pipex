@@ -21,14 +21,14 @@ void	free_my_chars(char **matrix)
 	if (matrix)
 	{
 		i = -1;
-		while(matrix[++i])
+		while (matrix[++i])
 			free(matrix[i]);
 		free(matrix);
 	}
 	return ;
 }
 
-char**	build_command(char *file, char *command)
+char	**build_command(char *file, char *command)
 {
 	int		len;
 	char	**args;
@@ -41,7 +41,7 @@ char**	build_command(char *file, char *command)
 	return (args);
 }
 
-char*	build_path(char	*argv)
+char	*build_path(char	*argv)
 {
 	int		i;
 	int		flag;
@@ -77,27 +77,24 @@ char*	build_path(char	*argv)
  *	@param	char	*path	Path of command.
  *	@param	char	**args	Command builded.
  */
-void	make_proces(int pid, int fdp[2], char *path, char **args)
+void	make_proces(int n, int fdp[2], char **args)
 {
 	int		i;
-	char	*env[2];
-	
-	if (pid == 0)
-	{
-		i = 0;
-		while (args[i])
-			i++;
-		ft_strlcpy(env[0], args[i - 1], ft_strlen(args[i - 1]) + 1);
-		env[1] = NULL;
-		dup2(fdp[1], STDOUT_FILENO);
-		close(fdp[0]);
-		close(fdp[1]);
-		execve(path, args, env);
-		perror("Salió algo mal");
-		exit(1);
-	}
-	return ;
+	char	*path;
+
+	path = build_path(args[0]);
+	i = 0;
+	while (args[i])
+		i++;
+	dup2(fdp[1 - n], STDOUT_FILENO);
+	close(fdp[0 + n]);
+	close(fdp[1 - n]);
+	i = execve(path, args, environ);
+	perror("Salió algo mal");
+	dprintf(0, "Ha ido bien?: %d\n\n", i);
+	exit(1);
 }
+
 /**
  * NOTAS
  * fdo	File Descritor Outfile
@@ -105,60 +102,49 @@ void	make_proces(int pid, int fdp[2], char *path, char **args)
  */
 int	main(int argc, char **argv)
 {
-	int		pid;
 	int		i;
 	int		fdo;
 	int		fdp[2];
+	pid_t	pid;
 	char	*str;
 	char	**args;
-	char	*path;
 
 	if (exc_manager(argc, argv) == 0)
 	{
 		str = (char *) malloc((sizeof(char) * 4096 + 1));
 		args = build_command(argv[1], argv[2]);
-		path = build_path(args[0]);
-		pipe(fdp);
+		if (pipe(fdp) == -1)
+			perror("Cosa mala esta");
 		pid = fork();
-		make_proces(pid, fdp, path, args);
+		if (pid == 0)
+			make_proces(0, fdp, args);
+		waitpid(pid, 0, WNOHANG);
 
-		if (pid > 0)
-		{
-			close(fdp[1]);
-			i = read(fdp[0], str, 4096);
-			wait(NULL);
-
-			fdo = open(argv[4], O_CREAT, O_TRUNC, O_WRONLY);
-			printf("\n[%d]Lo que hay en str:\n%s\n", fdo, str);
-			write(fdo, str, i);
-			close(fdo);
-
-			free_my_chars(args);
-			free(path);
-			free(str);
-
-			args = build_command(argv[4], argv[3]);
-			path = build_path(args[0]);
-			pid = fork();
-
-			make_proces(pid, fdp, path, args);
-			if (pid > 0)
-			{
-				close(fdp[1]);
-				str = NULL;
-				i = read(fdp[0], str, 4096);
-
-				fdo = open(argv[4], O_WRONLY);
-				printf("\n[%d]Lo que hay en str2:\n%s\n", fdo, str);
-				write(fdo, str, i);
-				close(fdo);
-
-				close(fdp[0]);
-			}
-		}
+		i = read(fdp[0], str, 4096);
+		close(fdp[0]);
+		fdo = open(argv[4], O_CREAT | O_TRUNC | O_WRONLY);
+		dprintf(0, "\n[%d]Lo que hay en str:\n%s\n", fdo, str);
+		write(fdo, str, i);
 		free_my_chars(args);
-		free(path);
-		// free(str);
+		free(str);
+
+		args = build_command(argv[4], argv[3]);
+		pid = fork();
+		if (pid == 0)
+			make_proces(1, fdp, args);
+		waitpid(pid, 0, WNOHANG);
+
+		str = NULL;
+		
+		i = read(fdp[0], str, 4096);
+		dprintf(0, "\n[%d]Lo que hay en str2:\n%s\n\n", fdo, str);
+		write(fdo, str, i);
+		close(fdo);
+
+		close(fdp[0]);
+		close(fdp[1]);
+		
+		free_my_chars(args);
 	}
 	system("leaks pipex.a");
 	exit(1);
