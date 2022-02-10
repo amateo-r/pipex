@@ -13,6 +13,7 @@
 #	https://projects.intra.42.fr/projects/pipex
 #	https://stackoverflow.com/questions/7292642/grabbing-output-from-exec
 #	https://stackoverflow.com/questions/13801175/classic-c-using-pipes-in-execvp-function-stdin-and-stdout-redirection
+#	https://stackoverflow.com/questions/33884291/pipes-dup2-and-exec
 
 #	SOURCES
 SRC			=	./src/main.c \

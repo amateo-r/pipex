@@ -77,7 +77,7 @@ char	*build_path(char	*argv)
  *	@param	char	*path	Path of command.
  *	@param	char	**args	Command builded.
  */
-void	make_proces(int n, int fdp[2], char **args)
+void	make_proces(const int n, int fdp[2], char **args)
 {
 	int		i;
 	char	*path;
@@ -89,9 +89,8 @@ void	make_proces(int n, int fdp[2], char **args)
 	dup2(fdp[1 - n], STDOUT_FILENO);
 	close(fdp[0 + n]);
 	close(fdp[1 - n]);
-	i = execve(path, args, environ);
-	perror("Salió algo mal");
-	dprintf(0, "Ha ido bien?: %d\n\n", i);
+	execve(path, args, environ);
+	perror("execve failed");
 	exit(1);
 }
 
@@ -107,6 +106,7 @@ int	main(int argc, char **argv)
 	int		fdp[2];
 	pid_t	pid;
 	char	*str;
+	char	*str2;
 	char	**args;
 
 	if (exc_manager(argc, argv) == 0)
@@ -118,12 +118,13 @@ int	main(int argc, char **argv)
 		pid = fork();
 		if (pid == 0)
 			make_proces(0, fdp, args);
+		close(fdp[0]);
+		close(fdp[1]);
 		waitpid(pid, 0, WNOHANG);
 
 		i = read(fdp[0], str, 4096);
-		close(fdp[0]);
 		fdo = open(argv[4], O_CREAT | O_TRUNC | O_WRONLY);
-		dprintf(0, "\n[%d]Lo que hay en str:\n%s\n", fdo, str);
+		// dprintf(0, "\n[%d]Lo que hay en str:\n%s\n", fdo, str);
 		write(fdo, str, i);
 		free_my_chars(args);
 		free(str);
@@ -132,21 +133,24 @@ int	main(int argc, char **argv)
 		pid = fork();
 		if (pid == 0)
 			make_proces(1, fdp, args);
+		close(fdp[0]);
+		close(fdp[1]);
 		waitpid(pid, 0, WNOHANG);
 
 		str = NULL;
+		str2 = (char *) malloc((sizeof(char) * 4096 + 1));
 		
-		i = read(fdp[0], str, 4096);
-		dprintf(0, "\n[%d]Lo que hay en str2:\n%s\n\n", fdo, str);
+		i = read(fdp[0], str2, 4096);
+		// dprintf(0, "\n[%d]Lo que hay en str2:\n%s\n\n", fdo, str2);
 		write(fdo, str, i);
 		close(fdo);
 
 		close(fdp[0]);
 		close(fdp[1]);
-		
 		free_my_chars(args);
+		free(str2);
 	}
-	system("leaks pipex.a");
+	// system("leaks pipex.a");
 	exit(1);
 	return (0);
 }

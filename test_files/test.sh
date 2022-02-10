@@ -11,7 +11,10 @@ echo Mío:
 cat ./test_files/outfile
 
 echo ---------------------------------------------------------
-# echo Prueba para grep a1 wc -w
-# echo Original:
-# <./test_files/infile grep a1 | wc -w >./test_files/grep_outfile
-# ./pipex.a ./test_files/infile "grep a1" "wc -w" ./test_files/outfile
+echo Prueba para grep a1 wc -w
+echo Original:
+<./test_files/infile grep a1 | wc -w >./test_files/grep_outfile
+cat ./test_files/grep_outfile
+echo Mío:
+./pipex.a ./test_files/infile "grep a1" "wc -w" ./test_files/outfile
+cat ./test_files/outfile
