@@ -71,33 +71,36 @@ char	*build_path(char	*argv)
 }
 
 /**
- *	Aquí es necesario pasar dos argumentos más:
- *	@param	int		pid		Proces id.
- *	@param	int		fdp[2]	File Descriptor Proces
- *	@param	char	*path	Path of command.
- *	@param	char	**args	Command builded.
+ * ARGUMENTS:
+ * @param	int		n		fdp modifier.
+ * @param	int		fdp[2]	File Descriptor Procs
+ * @param	char	**args	Command builded.
  */
 void	make_proces(const int n, int fdp[2], char **args)
 {
-	int		i;
 	char	*path;
 
 	path = build_path(args[0]);
-	i = 0;
-	while (args[i])
-		i++;
 	dup2(fdp[1 - n], STDOUT_FILENO);
-	close(fdp[0 + n]);
+	// close(fdp[0 + n]);
 	close(fdp[1 - n]);
 	execve(path, args, environ);
 	perror("execve failed");
-	exit(1);
+	exit(0);
 }
 
 /**
- * NOTAS
- * fdo	File Descritor Outfile
- * fdp	Pipe for the parent, (F)ile (D)escriptor (P)arent.
+ * ARGUMENTS:
+ * @param	int		argc	Number of input parameters. It must be 5
+ * @param	char	**argv	Input arguments. It must be: path, file, command, command and file.
+ *
+ * VARIABLES:
+ * @param	int		i		Counter.
+ * @param	int		fdp[2]	(F)ile (D)escriptor (P)roces.
+ * @param	pid_t	pid		Identifier of thread.
+ * @param	char	*str	String where is stored result of the first child.
+ * @param	char	*str	String where is stored result of the second child.
+ * @param	args	**args	Path and its command builded.
  */
 int	main(int argc, char **argv)
 {
@@ -106,7 +109,6 @@ int	main(int argc, char **argv)
 	int		fdp[2];
 	pid_t	pid;
 	char	*str;
-	char	*str2;
 	char	**args;
 
 	if (exc_manager(argc, argv) == 0)
@@ -124,7 +126,6 @@ int	main(int argc, char **argv)
 
 		i = read(fdp[0], str, 4096);
 		fdo = open(argv[4], O_CREAT | O_TRUNC | O_WRONLY);
-		// dprintf(0, "\n[%d]Lo que hay en str:\n%s\n", fdo, str);
 		write(fdo, str, i);
 		free_my_chars(args);
 		free(str);
@@ -136,21 +137,18 @@ int	main(int argc, char **argv)
 		close(fdp[0]);
 		close(fdp[1]);
 		waitpid(pid, 0, WNOHANG);
-
 		str = NULL;
-		str2 = (char *) malloc((sizeof(char) * 4096 + 1));
-		
-		i = read(fdp[0], str2, 4096);
-		// dprintf(0, "\n[%d]Lo que hay en str2:\n%s\n\n", fdo, str2);
+		str = (char *) malloc((sizeof(char) * 4096 + 1));
+
+		i = read(fdp[0], str, 4096);
 		write(fdo, str, i);
 		close(fdo);
 
 		close(fdp[0]);
 		close(fdp[1]);
 		free_my_chars(args);
-		free(str2);
+		free(str);
 	}
 	// system("leaks pipex.a");
-	exit(1);
 	return (0);
 }
