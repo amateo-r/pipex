@@ -16,8 +16,7 @@
 #	https://stackoverflow.com/questions/33884291/pipes-dup2-and-exec
 
 #	SOURCES
-SRC			=	./src/main.c \
-				./src/exception_manager.c
+SRC			=	./src/main.c
 OBJ			=	$(SRC:.c=.o)
 
 #	LIBS

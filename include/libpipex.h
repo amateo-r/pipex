@@ -22,6 +22,4 @@
 # include <stdio.h>
 # include <stdlib.h>
 
-int	exc_manager(int argc, char **argv);
-
 #endif

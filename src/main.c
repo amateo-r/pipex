@@ -14,6 +14,16 @@
 
 extern char	**environ;
 
+void	free_my_chars(char **matrix);
+void	th_st(int fdp[2], char **argv);
+void	th_nd(int fdp[2], char **argv);
+char	*build_path(char *a);
+
+/**
+ * Free the allocated matrix for the double pointer.
+ * ARGUMENTS:
+ * @param	char	**matrix	Matrix that will free his memory allocation
+ */
 void	free_my_chars(char **matrix)
 {
 	int	i;
@@ -28,127 +38,133 @@ void	free_my_chars(char **matrix)
 	return ;
 }
 
-char	**build_command(char *file, char *command)
-{
-	int		len;
-	char	**args;
-
-	len = ft_count(command, ' ');
-	args = ft_splitn(command, ' ', 1);
-	args[len + 1] = NULL;
-	args[len] = (char *) malloc(sizeof(*file) + (ft_strlen(file) + 1));
-	ft_strlcpy(args[len], file, ft_strlen(file) + 1);
-	return (args);
-}
-
-char	*build_path(char	*argv)
+/**
+ * This functions find the path of a command.
+ * ARGUMENTS:
+ * @param	char	*a		Command needed to find his path.
+ * PARAMETERS:
+ * @param	int		i;		Counter to manage arrays.
+ * @param	int		flag	False boolean to finish loop when path is found.
+ * @param	char	**env	An array of strings that for contain environ.
+ * @param	char	**m		Possible paths that need to be checked if exist or not.
+ * @param	char	*p		Return value and final path.
+ */
+char	*build_path(char *a)
 {
 	int		i;
 	int		flag;
 	char	**env;
-	char	**mat_path;
-	char	*path;
+	char	**m;
+	char	*p;
 
 	env = environ;
 	while (ft_strncmp("PATH=\0", *env, 5) != 0)
 		env++;
-	mat_path = ft_split(*env + 5, ':');
+	m = ft_split(*env + 5, ':');
 	i = -1;
 	flag = 0;
-	while (mat_path[++i] && flag == 0)
+	while (m[++i] && flag == 0)
 	{
-		path = (char *)malloc (sizeof(char) * (ft_strlen(mat_path[i]) + ft_strlen(argv) + 2));
-		ft_strlcpy(path, mat_path[i], ft_strlen(mat_path[i]) + 1);
-		ft_strlcat(path, "/", ft_strlen(path) + 2);
-		ft_strlcat(path, argv, ft_strlen(path) + ft_strlen(argv) + 1);
-		if (access(path, F_OK) == 0)
+		p = (char *)malloc(sizeof(char) * (ft_strlen(m[i]) + ft_strlen(a) + 2));
+		ft_strlcpy(p, m[i], ft_strlen(m[i]) + 1);
+		ft_strlcat(p, "/", ft_strlen(p) + 2);
+		ft_strlcat(p, a, ft_strlen(p) + ft_strlen(a) + 1);
+		if (access(p, F_OK) == 0)
 			flag = 1;
 		else
-			free(path);
+			free(p);
 	}
-	free_my_chars(mat_path);
-	return (path);
+	free_my_chars(m);
+	return (p);
 }
 
 /**
+* Execute the first child process.
  * ARGUMENTS:
- * @param	int		n		fdp modifier.
- * @param	int		fdp[2]	File Descriptor Procs
- * @param	char	**args	Command builded.
+ * @param	int		*fdp	(F)ile (D)escriptor (P)ipex.
+ * VARIABLES:
+ * @param	int		fd		File descriptor for input or output files.
+ * @param	char	*path	Command path.
+ * @param	char	**args	Command and his flags.
  */
-void	make_proces(const int n, int fdp[2], char **args)
+void	th_st(int fdp[2], char **argv)
 {
+	int		fd;
 	char	*path;
+	char	**args;
 
+	fd = open(argv[1], O_RDONLY | O_NONBLOCK);
+	close(fdp[0]);
+	dup2(fd, STDIN_FILENO);
+	close(fd);
+	dup2(fdp[1], STDOUT_FILENO);
+	close(fdp[1]);
+	args = ft_split(argv[2], ' ');
 	path = build_path(args[0]);
-	dup2(fdp[1 - n], STDOUT_FILENO);
-	// close(fdp[0 + n]);
-	close(fdp[1 - n]);
 	execve(path, args, environ);
 	perror("execve failed");
 	exit(0);
 }
 
 /**
+* Execute the second child process.
  * ARGUMENTS:
- * @param	int		argc	Number of input parameters. It must be 5
- * @param	char	**argv	Input arguments. It must be: path, file, command, command and file.
- *
+ * @param	int		*fdp	(F)ile (D)escriptor (P)ipex.
  * VARIABLES:
- * @param	int		i		Counter.
- * @param	int		fdp[2]	(F)ile (D)escriptor (P)roces.
- * @param	pid_t	pid		Identifier of thread.
- * @param	char	*str	String where is stored result of the first child.
- * @param	char	*str	String where is stored result of the second child.
- * @param	args	**args	Path and its command builded.
+ * @param	int		fd		File descriptor for input or output files.
+ * @param	char	*path	Command path.
+ * @param	char	**args	Command and his flags.
+ */
+void	th_nd(int fdp[2], char **argv)
+{
+	int		fd;
+	char	*path;
+	char	**args;
+
+	fd = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0777);
+	dup2(fdp[0], STDIN_FILENO);
+	close(fdp[0]);
+	dup2(fd, STDOUT_FILENO);
+	close(fd);
+	args = ft_split(argv[3], ' ');
+	path = build_path(args[0]);
+	execve(path, args, environ);
+	perror("execve failed");
+	exit(0);
+}
+
+/**
+ * This program emuletes pipe. Needs four input paramteters.
+ * Input file: the first command execute based on his content.
+ * Command 1
+ * Command 2
+ * Ouput file: where the final result is stored.
+ * PARAMATERS:
+ * @param	int	fdp[2]	(F)ile (D)escriptor (P)ipex
  */
 int	main(int argc, char **argv)
 {
-	int		i;
-	int		fdo;
-	int		fdp[2];
-	pid_t	pid;
-	char	*str;
-	char	**args;
+	int	fdp[2];
 
-	if (exc_manager(argc, argv) == 0)
+	if (argc != 5)
+		return (0);
+	else if (access(argv[1], F_OK) != 0)
+		return (0);
+	else
 	{
-		str = (char *) malloc((sizeof(char) * 4096 + 1));
-		args = build_command(argv[1], argv[2]);
-		if (pipe(fdp) == -1)
-			perror("Cosa mala esta");
-		pid = fork();
-		if (pid == 0)
-			make_proces(0, fdp, args);
-		close(fdp[0]);
-		close(fdp[1]);
-		waitpid(pid, 0, WNOHANG);
-
-		i = read(fdp[0], str, 4096);
-		fdo = open(argv[4], O_CREAT | O_TRUNC | O_WRONLY);
-		write(fdo, str, i);
-		free_my_chars(args);
-		free(str);
-
-		args = build_command(argv[4], argv[3]);
-		pid = fork();
-		if (pid == 0)
-			make_proces(1, fdp, args);
-		close(fdp[0]);
-		close(fdp[1]);
-		waitpid(pid, 0, WNOHANG);
-		str = NULL;
-		str = (char *) malloc((sizeof(char) * 4096 + 1));
-
-		i = read(fdp[0], str, 4096);
-		write(fdo, str, i);
-		close(fdo);
-
-		close(fdp[0]);
-		close(fdp[1]);
-		free_my_chars(args);
-		free(str);
+		pipe(fdp);
+		if (fork() == 0)
+			th_st(fdp, argv);
+		else
+		{
+			wait(NULL);
+			close(fdp[1]);
+			if (fork() == 0)
+				th_nd(fdp, argv);
+			else
+				close(fdp[0]);
+			wait(NULL);
+		}
 	}
-	// system("leaks pipex.a");
 	return (0);
 }
