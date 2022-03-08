@@ -24,7 +24,7 @@ LIBFT		=	$(LIBFT_PATH)/libft.a
 LIBFT_PATH	=	./include/libft
 
 #	COMPILER
-NAME		=	pipex.a
+NAME		=	pipex
 CC			=	gcc
 CFLAGS		=	-Wall -Wextra -Werror
 RM			=	rm -f
