@@ -13,8 +13,8 @@ cat outfile
 echo ---------------------------------------------------------
 echo Prueba para grep a1 wc -w
 echo Original:
-<./test_files/input grep "hola buenas tardes" | wc -w >./test_files/grep_outfile
+<./test_files/input grep "hola" | wc -w >./test_files/grep_outfile
 cat ./test_files/grep_outfile
 echo Mío:
-./pipex ./test_files/input "grep \"hola buenas tardes\"" "wc -w" ./outfile
+./pipex ./test_files/input "grep hola" "wc -w" ./outfile
 cat outfile

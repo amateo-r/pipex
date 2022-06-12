@@ -6,22 +6,24 @@
 #    By: amateo-r <amateo-r@student.42madrid>       +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/01/10 10:22:36 by amateo-r          #+#    #+#              #
-#    Updated: 2022/01/10 10:22:39 by amateo-r         ###   ########.fr        #
+#    Updated: 2022/06/12 10:55:56 by amateo-r         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-#	https://projects.intra.42.fr/projects/pipex
-#	https://stackoverflow.com/questions/7292642/grabbing-output-from-exec
-#	https://stackoverflow.com/questions/13801175/classic-c-using-pipes-in-execvp-function-stdin-and-stdout-redirection
-#	https://stackoverflow.com/questions/33884291/pipes-dup2-and-exec
-
 #	SOURCES
-SRC			=	./src/main.c
+SRC			=	./src/main.c \
+				./src/ft_strlcpy.c \
+				./src/ft_strlcat.c \
+				./src/ft_strncmp.c \
+				./src/ft_split.c \
+				./src/ft_substr.c \
+				./src/ft_strlen.c \
+				./src/ft_calloc.c \
+				./src/ft_bzero.c \
+				./src/ft_memset.c \
+				./src/ft_strdup.c \
+				./src/ft_strcpy.c
 OBJ			=	$(SRC:.c=.o)
-
-#	LIBS
-LIBFT		=	$(LIBFT_PATH)/libft.a
-LIBFT_PATH	=	./include/libft
 
 #	COMPILER
 NAME		=	pipex
@@ -29,15 +31,12 @@ CC			=	gcc
 CFLAGS		=	-Wall -Wextra -Werror
 RM			=	rm -f
 
-all:		makelib $(NAME)
+all:		$(NAME)
 
 .%o.%c:		$(CC) $(CFLAGS) $<	-o $@
 
 $(NAME):	$(OBJ)
-			$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -o	$(NAME)
-
-makelib:
-			@make -C $(LIBFT_PATH)
+			$(CC) $(CFLAGS) $(OBJ) -o	$(NAME)
 
 norme:
 			@echo "---- SRC ----"
@@ -46,10 +45,9 @@ norme:
 			@norminette ./include
 
 clean:
-			@make -C $(LIBFT_PATH) clean
 			$(RM) $(OBJ)
 
 fclean:		clean
-			$(RM) $(NAME) $(LIBFT)
+			$(RM) $(NAME)
 
 re:			fclean all

@@ -6,19 +6,35 @@
 /*   By: amateo-r <amateo-r@student.42madrid>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/10 10:24:04 by amateo-r          #+#    #+#             */
-/*   Updated: 2022/01/10 10:24:07 by amateo-r         ###   ########.fr       */
+/*   Updated: 2022/06/12 11:29:05 by amateo-r         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/libpipex.h"
 
-extern char	**environ;
-
+int		exception_manager(int argc, char **argv, char **env);
 void	free_my_chars(char **matrix);
-void	th_st(int fdp[2], char **argv);
-void	th_nd(int fdp[2], char **argv);
-char	*build_path(char *a);
+void	th_st(int fdp[2], char **argv, char **env);
+void	th_nd(int fdp[2], char **argv, char **env);
+char	*build_path(char *a, char **env);
 
+/**
+ * Input error handler.
+ * ARGUMENTS:
+ * @param	int		argc	'argv' len.
+ * @param	char	**argv	Consol inputs.
+ * @param	char	**env	Environ.
+ */
+int		exception_manager(int argc, char **argv, char **env)
+{
+	if (argc != 5)
+		return (0);
+	else if (access(argv[1], F_OK | R_OK) != 0)
+		return (0);
+	else if (!env)
+		return (0);
+	return (1);
+}
 /**
  * Free the allocated matrix for the double pointer.
  * ARGUMENTS:
@@ -48,16 +64,15 @@ void	free_my_chars(char **matrix)
  * @param	char	**env	An array of strings that for contain environ.
  * @param	char	**m		Possible paths that need to be checked if exist or not.
  * @param	char	*p		Return value and final path.
+ * @param	char	**env	Environ.
  */
-char	*build_path(char *a)
+char	*build_path(char *a, char **env)
 {
 	int		i;
 	int		flag;
-	char	**env;
 	char	**m;
 	char	*p;
 
-	env = environ;
 	while (ft_strncmp("PATH=\0", *env, 5) != 0)
 		env++;
 	m = ft_split(*env + 5, ':');
@@ -86,8 +101,9 @@ char	*build_path(char *a)
  * @param	int		fd		File descriptor for input or output files.
  * @param	char	*path	Command path.
  * @param	char	**args	Command and his flags.
+ * @param	char	**env	Environ.
  */
-void	th_st(int fdp[2], char **argv)
+void	th_st(int fdp[2], char **argv, char **env)
 {
 	int		fd;
 	char	*path;
@@ -100,8 +116,8 @@ void	th_st(int fdp[2], char **argv)
 	dup2(fdp[1], STDOUT_FILENO);
 	close(fdp[1]);
 	args = ft_split(argv[2], ' ');
-	path = build_path(args[0]);
-	execve(path, args, environ);
+	path = build_path(args[0], env);
+	execve(path, args, env);
 	perror("execve failed");
 	exit(0);
 }
@@ -114,8 +130,9 @@ void	th_st(int fdp[2], char **argv)
  * @param	int		fd		File descriptor for input or output files.
  * @param	char	*path	Command path.
  * @param	char	**args	Command and his flags.
+ * @param	char	**env	Environ.
  */
-void	th_nd(int fdp[2], char **argv)
+void	th_nd(int fdp[2], char **argv, char **env)
 {
 	int		fd;
 	char	*path;
@@ -127,8 +144,8 @@ void	th_nd(int fdp[2], char **argv)
 	dup2(fd, STDOUT_FILENO);
 	close(fd);
 	args = ft_split(argv[3], ' ');
-	path = build_path(args[0]);
-	execve(path, args, environ);
+	path = build_path(args[0], env);
+	execve(path, args, env);
 	perror("execve failed");
 	exit(0);
 }
@@ -142,25 +159,23 @@ void	th_nd(int fdp[2], char **argv)
  * PARAMATERS:
  * @param	int	fdp[2]	(F)ile (D)escriptor (P)ipex
  */
-int	main(int argc, char **argv)
+int	main(int argc, char **argv, char **env)
 {
 	int	fdp[2];
 
-	if (argc != 5)
-		return (0);
-	else if (access(argv[1], F_OK) != 0)
+	if (exception_manager(argc, argv, env) == 0)
 		return (0);
 	else
 	{
 		pipe(fdp);
 		if (fork() == 0)
-			th_st(fdp, argv);
+			th_st(fdp, argv, env);
 		else
 		{
 			wait(NULL);
 			close(fdp[1]);
 			if (fork() == 0)
-				th_nd(fdp, argv);
+				th_nd(fdp, argv, env);
 			else
 				close(fdp[0]);
 			wait(NULL);
