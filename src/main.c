@@ -12,29 +12,11 @@
 
 #include "../include/libpipex.h"
 
-int		exception_manager(int argc, char **argv, char **env);
 void	free_my_chars(char **matrix);
 void	th_st(int fdp[2], char **argv, char **env);
 void	th_nd(int fdp[2], char **argv, char **env);
 char	*build_path(char *a, char **env);
 
-/**
- * Input error handler.
- * ARGUMENTS:
- * @param	int		argc	'argv' len.
- * @param	char	**argv	Consol inputs.
- * @param	char	**env	Environ.
- */
-int		exception_manager(int argc, char **argv, char **env)
-{
-	if (argc != 5)
-		return (0);
-	else if (access(argv[1], F_OK | R_OK) != 0)
-		return (0);
-	else if (!env)
-		return (0);
-	return (1);
-}
 /**
  * Free the allocated matrix for the double pointer.
  * ARGUMENTS:

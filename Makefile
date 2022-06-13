@@ -22,7 +22,8 @@ SRC			=	./src/main.c \
 				./src/ft_bzero.c \
 				./src/ft_memset.c \
 				./src/ft_strdup.c \
-				./src/ft_strcpy.c
+				./src/ft_strcpy.c \
+				./src/exception_manager.c
 OBJ			=	$(SRC:.c=.o)
 
 #	COMPILER
