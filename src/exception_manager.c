@@ -31,6 +31,14 @@ int	exception_manager(int argc, char **argv, char **env)
 		write(1, "Error: input file\n", 19);
 		return (0);
 	}
+	else if (access(argv[3], F_OK) == 0)
+	{
+		if (access(argv[3], W_OK) != 0)
+		{
+			write(1, "Error: output file\n", 20);
+			return (0);
+		}
+	}
 	else if (!env)
 	{
 		write (1, "Error: environ problem\n", 23);
