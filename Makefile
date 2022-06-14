@@ -29,7 +29,7 @@ OBJ			=	$(SRC:.c=.o)
 #	COMPILER
 NAME		=	pipex
 CC			=	gcc
-CFLAGS		=	-Wall -Wextra -Werror
+CFLAGS		=	-Wall -Wextra -Werror -fsanitize=address
 RM			=	rm -f
 
 all:		$(NAME)
